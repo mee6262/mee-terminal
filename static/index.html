@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mee Terminal">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+<title>Mee Terminal</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/glass.css">
+<script src="/static/settings.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="row">
+    <strong>Mee Terminal</strong>
+    <select id="acct"></select>
+    <span id="mode" class="badge"></span>
+    <span id="top-eq" class="top-eq" title="Equity"></span>
+    <span id="top-day" class="top-eq top-day"></span>
+    <span id="top-risk" class="top-eq top-risk d-only"></span>
+  </div>
+  <div class="row">
+    <span class="conn" id="conn" tabindex="0">
+      <span class="dot" id="dot-ws"></span><span class="dot" id="dot-mt5"></span>
+      <span class="conn-tip" role="tooltip">
+        <span><i class="dot" id="tip-ws"></i> WebSocket <b id="tip-ws-t">กำลังต่อ…</b></span>
+        <span><i class="dot" id="tip-mt5"></i> MT5 <b id="tip-mt5-t">–</b></span>
+        <span class="muted">ping <b id="ping">– ms</b></span>
+      </span>
+    </span>
+    <button id="m-draw" class="m-only tool" title="เครื่องมือวาด">✏️</button>
+    <button id="tb-order" class="tool d-only tb-order" title="เปิด/ซ่อนช่องส่งคำสั่ง (F9) · คีย์ลัดทั้งหมด กด ?">📝 ออเดอร์</button>
+    <button id="tb-fs" class="tool d-only" title="เต็มจอ (F11 / Esc ออก)">⛶</button>
+  </div>
+</div>
+<div class="banner" id="banner" hidden></div>
+<div class="news-alert" id="news-alert" hidden></div>
+<main>
+<nav class="rail" id="rail">
+  <button type="button" class="rail-btn" id="rail-watch" title="Watchlist"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></span>ราคา</button>
+  <button type="button" class="rail-btn" id="rail-dock" title="Positions / Pending"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16H7zM10 8h4M10 12h4M10 16h2"/></svg></span>ออเดอร์</button>
+  <button type="button" class="rail-btn" id="nav-history" title="ประวัติเทรด"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4M12 8v4l3 2"/></svg></span>ประวัติ</button>
+  <button type="button" class="rail-btn" id="nav-news" title="ปฏิทินข่าว"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h11v14H5zM16 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5"/></svg></span>ข่าว</button>
+  <div class="rail-gap"></div>
+  <button type="button" class="rail-btn" id="nav-replay" title="Bar Replay (ย้อนกราฟฝึกเทรด ออเดอร์จำลอง)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 7l-6 5 6 5zM19 7l-6 5 6 5z"/></svg></span>Replay</button>
+  <button type="button" class="rail-btn" id="nav-health" title="สถานะระบบ"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>ระบบ</button>
+  <button type="button" class="rail-btn" id="nav-settings" title="การตั้งค่า"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.7-1.1V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.3z"/></svg></span>ตั้งค่า</button>
+  <button type="button" class="rail-btn rail-out" id="logout" title="ออกจากระบบ"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0"/></svg></span>ออก</button>
+</nav>
+<aside class="lpanel" id="lpanel">
+  <section class="panel" id="watch-panel">
+    <div class="panel-head">
+      <h2>Watchlist</h2>
+      <form id="add-form" class="row">
+        <input id="add-sym" list="sym-list" placeholder="เพิ่ม symbol" autocomplete="off">
+        <datalist id="sym-list"></datalist>
+        <button type="submit">+</button>
+      </form>
+    </div>
+    <div class="wgroups" id="wgroups"></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th class="drag-col"></th><th>Symbol</th><th class="r">Bid</th><th class="r">Ask</th><th class="r">Spread</th><th class="r">อัปเดต</th><th></th></tr></thead>
+    <tbody id="watch"></tbody></table></div>
+  </section>
+</aside>
+<div class="splitter v" id="split-left" title="ลากเพื่อปรับความกว้าง"></div>
+<div class="mid" id="center">
+<div class="workspace">
+  <section class="charts">
+    <div class="chart-toolbar" id="chart-toolbar"></div>
+    <div class="chart-grid grid-1" id="chart-grid"></div>
+  </section>
+</div>
+<div class="splitter h" id="split-dock" title="ลากเพื่อปรับความสูง · ดับเบิลคลิก = พับ/กาง"></div>
+<section class="dock" id="dock">
+  <div class="dock-tabs" id="dock-tabs">
+    <button type="button" id="dock-fold" title="พับ/กาง">▾</button>
+    <button type="button" data-dt="pos">Positions <b id="dt-pos"></b></button>
+    <button type="button" data-dt="ord">Pending <b id="dt-ord"></b></button>
+  </div>
+  <section class="panel" id="pos-panel">
+    <div class="panel-head"><h2>Positions <span class="muted" id="pos-count"></span></h2><div class="row head-acts"><button id="autobe-btn" class="btn-ghost autobe-btn" title="ตั้งค่า Auto BE (เลื่อน SL ไปจุดทุนอัตโนมัติ)">🛡 Auto BE</button><button id="be-all" class="btn-ghost" title="เลื่อน SL ไปจุดทุน (หลายไม้)">BE</button><button id="close-all" class="btn-ghost danger-text" title="ปิดทั้งหมด / เฉพาะกำไร / ขาดทุน / BUY / SELL / symbol">ปิด… ▾</button></div></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>Ticket</th><th>Symbol</th><th>Type</th><th class="r">Lot</th><th class="r">Open</th><th class="r">Current</th><th class="r">SL</th><th class="r">TP</th><th class="r">Swap</th><th class="r">Profit</th><th>Magic</th><th></th></tr></thead>
+    <tbody id="positions"></tbody></table></div>
+    <div class="cards m-only" id="pos-cards"></div>
+  </section>
+
+  <section class="panel" id="ord-panel">
+    <div class="panel-head"><h2>Pending <span class="muted" id="ord-count"></span></h2><button id="cancel-all" class="btn-ghost danger-text" title="ยกเลิกทั้งหมด / เฉพาะ symbol">ยกเลิก… ▾</button></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>Ticket</th><th>Symbol</th><th>Type</th><th class="r">Lot</th><th class="r">Price</th><th class="r">SL</th><th class="r">TP</th><th>Magic</th><th></th></tr></thead>
+    <tbody id="orders"></tbody></table></div>
+    <div class="cards m-only" id="ord-cards"></div>
+  </section>
+</section>
+  <section class="panel news" id="news-panel">
+    <div class="panel-head hist-head"><h2>ปฏิทินข่าว <span class="muted small" id="news-updated"></span></h2>
+      <div class="hist-ctrl">
+        <select id="news-impact"><option value="high">เฉพาะแดง</option><option value="medium">ส้ม+แดง</option><option value="all">ทั้งหมด</option></select>
+        <select id="news-cur"><option value="ALL">ทุกสกุล</option></select>
+        <label class="chk small"><input type="checkbox" id="news-today"> วันนี้</label>
+        <label class="chk small"><input type="checkbox" id="news-mine"> สกุลที่มีไม้</label>
+        <button type="button" class="btn-ghost" id="news-refresh" title="ดึงใหม่">⟳</button>
+      </div>
+    </div>
+    <div class="news-next" id="news-next" hidden></div>
+    <div id="news-list"></div>
+  </section>
+
+  <section class="panel hist" id="history-panel">
+    <div class="panel-head hist-head"><h2>ประวัติเทรด</h2>
+      <div class="hist-ctrl">
+        <select id="h-range"></select>
+        <span id="h-custom" class="row" hidden><input type="date" id="h-from"><input type="date" id="h-to"></span>
+        <select id="h-sym"><option value="">ทุก symbol</option></select>
+        <select id="h-tag" title="กรองตามแท็ก journal"><option value="">ทุกแท็ก</option></select>
+        <select id="h-src"><option value="all">ทุกที่มา</option><option value="manual">มือ</option><option value="bot">บอท</option></select>
+        <button type="button" class="btn-ghost" id="h-refresh" title="โหลดใหม่">⟳</button>
+        <button type="button" class="btn-ghost" id="h-csv">CSV</button>
+      </div>
+    </div>
+    <div class="tk-info" id="hist-msg"></div>
+    <div class="stats hist-stats" id="hist-stats"></div>
+    <canvas id="hist-curve"></canvas>
+    <details class="hist-deep-box" id="hist-deep-box"><summary>📊 สถิติเชิงลึก (ชั่วโมง / วัน / symbol / ฝั่ง / ระยะถือ / การกระจาย)</summary><div id="hist-deep" class="hist-deep"></div></details>
+    <div class="scroll d-only"><table class="tbl"><thead><tr><th>ปิดเมื่อ</th><th>Symbol</th><th>ฝั่ง</th><th class="r">Lot</th><th class="r">เข้า</th><th class="r">ออก</th><th class="r">ถือ</th><th class="r">คอม+swap</th><th class="r">Net</th><th>ที่มา</th><th></th></tr></thead>
+    <tbody id="hist-rows"></tbody></table></div>
+    <div class="cards m-only" id="hist-cards"></div>
+  </section>
+</div>
+<aside class="side" id="rpanel">
+  <section class="panel ticket" id="ticket">
+    <div class="sheet-handle m-only" id="sheet-handle"><span></span></div>
+    <div class="panel-head"><h2>ส่งคำสั่ง <span id="tk-sym"></span></h2>
+      <button type="button" class="btn-ghost m-only sheet-x" id="sheet-x" title="ปิด">✕</button>
+      <label class="small muted chk"><input type="checkbox" id="tk-confirm"> ยืนยันก่อนส่ง</label>
+      <span class="row d-only tk-hbtns"><button type="button" class="btn-ghost" id="tk-float" title="ลอย / ยึดข้างจอ">⧉</button><button type="button" class="btn-ghost" id="tk-hide" title="ซ่อน (กด 📝 ออเดอร์ เพื่อเปิด)">✕</button></span></div>
+    <div class="tk-body" id="tk-new">
+      <div class="seg" id="tk-kinds">
+        <button data-kind="market">Market</button><button data-kind="limit">Limit</button>
+        <button data-kind="stop">Stop</button><button data-kind="stop_limit">Stop Limit</button>
+      </div>
+      <div class="tk-grid">
+        <label id="tk-price-row"><span id="tk-price-label">ราคา</span><input id="tk-price" inputmode="decimal" autocomplete="off"></label>
+        <label id="tk-stoplimit-row"><span>ราคา Limit</span><input id="tk-stoplimit" inputmode="decimal" autocomplete="off"></label>
+        <div class="tk-rules" id="tk-rules" hidden>
+          <label><span>⏱ หมดอายุ</span><select id="tk-exp"></select></label>
+          <label><span>🔗 OCO กับ</span><select id="tk-oco"></select></label>
+          <input type="datetime-local" id="tk-exp-at" hidden>
+        </div>
+        <label><span>SL</span><input id="tk-sl" inputmode="decimal" autocomplete="off" placeholder="ไม่ตั้ง"></label>
+        <label><span>TP</span><input id="tk-tp" inputmode="decimal" autocomplete="off" placeholder="ไม่ตั้ง"></label>
+        <label><span class="row"><span id="tk-vol-label">Lot</span>
+          <span class="seg mini" id="tk-mode"><button data-mode="lot">Lot</button><button data-mode="risk">Risk%</button></span></span>
+          <input id="tk-vol" inputmode="decimal" autocomplete="off"></label>
+        <button type="button" class="btn-ghost tk-clear" id="tk-clear" title="ล้างราคา/SL/TP">ล้าง</button>
+      </div>
+      <div class="presets" id="tk-presets"></div>
+      <div class="tk-info" id="tk-info"></div>
+      <div class="est"><div class="est-loss"><span>ถ้าโดน SL</span><b id="tk-loss">–</b></div>
+        <div class="est-profit"><span>ถ้าถึง TP</span><b id="tk-profit">–</b></div></div>
+      <div class="tk-btns">
+        <button id="tk-sell" class="btn-sell"><b>SELL</b><span id="tk-bid">–</span></button>
+        <button id="tk-buy" class="btn-buy"><b>BUY</b><span id="tk-ask">–</span></button>
+      </div>
+    </div>
+    <div class="tk-body" id="tk-edit" hidden>
+      <div class="edit-head"><b id="ed-title"></b><button type="button" class="btn-ghost x" id="ed-x" title="ปิดโหมดแก้ไข">✕</button></div>
+      <div class="tk-grid">
+        <label id="ed-price-row"><span>ราคา</span><input id="ed-price" inputmode="decimal" autocomplete="off"></label>
+        <label id="ed-stoplimit-row"><span>ราคา Limit</span><input id="ed-stoplimit" inputmode="decimal" autocomplete="off"></label>
+        <label><span>SL</span><input id="ed-sl" inputmode="decimal" autocomplete="off" placeholder="ไม่ตั้ง"></label>
+        <label><span>TP</span><input id="ed-tp" inputmode="decimal" autocomplete="off" placeholder="ไม่ตั้ง"></label>
+      </div>
+      <div class="presets" id="ed-presets"></div>
+      <div class="est"><div class="est-loss"><span>ถ้าโดน SL</span><b id="ed-loss">–</b></div>
+        <div class="est-profit"><span>ถ้าถึง TP</span><b id="ed-profit">–</b></div></div>
+      <div class="ed-more"><button type="button" class="btn-ghost" id="ed-be" title="เลื่อน SL ไปจุดทุน">BE</button><button type="button" class="btn-ghost" id="ed-partial">ปิดบางส่วน</button>
+        <button type="button" class="btn-ghost danger-text" id="ed-closepos">ปิด position</button></div>
+      <div class="modal-btns"><button type="button" class="btn-ghost" id="ed-cancel">ยกเลิก</button>
+        <button type="button" class="btn-primary" id="ed-ok">ยืนยัน</button></div>
+      <div class="small muted">ลากเส้นบนกราฟหรือพิมพ์ค่า แล้วกดยืนยัน</div>
+    </div>
+  </section>
+  <section class="stats" id="stats">
+    <div><span class="muted">Balance</span><b id="s-balance">–</b></div>
+    <div><span class="muted">Equity</span><b id="s-equity">–</b></div>
+    <div><span class="muted">Profit</span><b id="s-profit">–</b></div>
+    <div><span class="muted">Margin</span><b id="s-margin">–</b></div>
+    <div><span class="muted">Free</span><b id="s-free">–</b></div>
+    <div><span class="muted">Level</span><b id="s-level">–</b></div>
+    <div><span class="muted">วันนี้</span><b id="s-day">–</b></div>
+    <div><span class="muted">เสี่ยง (ถ้าโดน SL)</span><b id="s-risk">–</b></div>
+  </section>
+
+  <section class="panel m-acct m-only" id="acct-panel">
+    <div class="panel-head"><h2>บัญชี</h2></div>
+    <div class="tk-body"><select id="m-acct"></select>
+      <button type="button" class="btn-ghost" id="m-health">🩺 สถานะระบบ</button>
+      <button type="button" class="btn-ghost" id="m-replay">⏪ Bar Replay (ฝึกเทรดย้อนหลัง)</button>
+      <button type="button" class="btn-ghost" id="m-settings">⚙️ การตั้งค่า</button>
+      <button type="button" class="btn-ghost" id="m-logout">ออกจากระบบ</button></div>
+  </section>
+</aside>
+</main>
+<div class="m-bottom m-only">
+  <div class="qbar" id="qbar">
+    <button class="q-sell" id="q-sell"><small>SELL</small><b id="q-bid">–</b></button>
+    <div class="q-lot"><button id="q-minus">−</button><input id="q-vol" inputmode="decimal" autocomplete="off"><button id="q-plus">+</button></div>
+    <button class="q-buy" id="q-buy"><small>BUY</small><b id="q-ask">–</b></button>
+    <button class="q-more" id="q-more" title="ส่งคำสั่งแบบละเอียด">⋯</button>
+  </div>
+  <nav class="mtabs" id="mtabs">
+    <button data-tab="chart" class="on"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6"/></svg></span>กราฟ</button>
+    <button data-tab="orders"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16H7zM10 8h4M10 12h4M10 16h2"/></svg></span>ออเดอร์ <b id="m-count"></b></button>
+    <button data-tab="quotes"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></span>ราคา</button>
+    <button data-tab="news"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h11v14H5zM16 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5"/></svg></span>ข่าว</button>
+    <button data-tab="history"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4M12 8v4l3 2"/></svg></span>ประวัติ</button>
+    <button data-tab="account"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0"/></svg></span>บัญชี</button>
+  </nav>
+</div>
+<div class="snap-bar" id="snap-bar" hidden><span></span><button type="button" class="btn-primary" id="snap-go">📷 ถ่าย</button><button type="button" class="btn-ghost" id="snap-x">✕</button></div>
+<dialog id="modal"><form method="dialog"></form></dialog>
+<div class="toasts" id="toasts"></div>
+<script src="/static/vendor/klinecharts-10.0.3.min.js"></script>
+<script src="/static/indicators/core.js"></script>
+<script src="/static/indicators/liquidity_zones.js"></script>
+<script src="/static/indicators/vp_order_blocks.js"></script>
+<script src="/static/indicators/sessions_tpo.js"></script>
+<script src="/static/indicators/of_vwap.js"></script>
+<script src="/static/indicators/mx_suite.js"></script>
+<script src="/static/indicators/smart_zone_retest.js"></script>
+<script src="/static/basicind.js"></script>
+<script src="/static/chart.js"></script>
+<script src="/static/drawsettings.js"></script>
+<script src="/static/trade.js"></script>
+<script src="/static/extras.js"></script>
+<script src="/static/presets.js"></script>
+<script src="/static/history.js"></script>
+<script src="/static/histstats.js"></script>
+<script src="/static/news.js"></script>
+<script src="/static/ordertools.js"></script>
+<script src="/static/acctadmin.js"></script>
+<script src="/static/newslines.js"></script>
+<script src="/static/levels.js"></script>
+<script src="/static/flow.js"></script>
+<script src="/static/replay.js"></script>
+<script src="/static/app.js"></script>
+<script src="/static/mobile.js"></script>
+<script src="/static/layout.js"></script>
+</body>
+</html>

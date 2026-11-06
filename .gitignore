@@ -1,0 +1,10 @@
+logs/
+accounts.local.json
+accounts*.json.bak
+accounts*.json.tmp
+backups/
+venv/
+.env
+*.db
+*.db-*
+__pycache__/

@@ -1,0 +1,38 @@
+{
+  "accounts": [
+    {
+      "name": "demo",
+      "kind": "std",
+      "terminal_path": "C:\\Program Files\\MetaTrader 5 T2\\terminal64.exe",
+      "port": 8101,
+      "portable": true,
+      "login": null,
+      "server_utc_offset_h": 0,
+      "trading": true,
+      "allow_real": false,
+      "magic": 0,
+      "deviation": 20,
+      "guards": {
+        "max_lot": 5,
+        "max_positions": 30
+      }
+    },
+    {
+      "name": "cent",
+      "kind": "cent",
+      "terminal_path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+      "port": 8102,
+      "portable": false,
+      "login": null,
+      "server_utc_offset_h": 0,
+      "trading": true,
+      "allow_real": true,
+      "magic": 0,
+      "deviation": 20,
+      "guards": {
+        "max_lot": 5,
+        "max_positions": 30
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+httpx
+certifi
+websockets>=14
+MetaTrader5; sys_platform == "win32"
+pywebpush>=2.0   # Web Push (optional: without it only push is disabled)
